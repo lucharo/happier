@@ -1,8 +1,0 @@
-Metadata-Version: 2.4
-Name: happier-tui
-Version: 0.1.0
-Summary: Terminal UI for managing Happier sessions
-Requires-Python: >=3.12
-Description-Content-Type: text/markdown
-Requires-Dist: textual>=8.1.1
-Requires-Dist: httpx>=0.28.0
