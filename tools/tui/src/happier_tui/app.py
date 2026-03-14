@@ -113,6 +113,7 @@ class HappierTUI(App):
     ]
 
     sessions: list[Session] = []
+    _sessions_by_id: dict[str, Session] = {}
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -147,6 +148,7 @@ class HappierTUI(App):
         sessions = await list_sessions()
         status.session_count = len(sessions)
         self.sessions = sessions
+        self._sessions_by_id = {s.happier_session_id: s for s in sessions}
 
         table = self.query_one(DataTable)
         table.clear()
@@ -182,11 +184,13 @@ class HappierTUI(App):
 
     def _get_selected_session(self) -> Session | None:
         table = self.query_one(DataTable)
-        if table.cursor_row is None or not self.sessions:
+        if table.cursor_row is None or not self._sessions_by_id:
             return None
-        if 0 <= table.cursor_row < len(self.sessions):
-            return self.sessions[table.cursor_row]
-        return None
+        try:
+            row_key, _ = table.coordinate_to_cell_key((table.cursor_row, 0))
+            return self._sessions_by_id.get(row_key.value)
+        except Exception:
+            return None
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
         detail = self.query_one(SessionDetail)

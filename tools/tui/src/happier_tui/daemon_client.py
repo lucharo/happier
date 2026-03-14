@@ -100,8 +100,10 @@ async def list_sessions() -> list[Session]:
         alive = True
         try:
             os.kill(pid, 0)
-        except OSError:
+        except ProcessLookupError:
             alive = False
+        except PermissionError:
+            alive = True  # Process exists but owned by another user
 
         s = Session(
             happier_session_id=child.get("happySessionId", ""),
@@ -128,7 +130,10 @@ async def spawn_session(directory: str) -> dict:
 
 def _normalize_path(p: str) -> str:
     """Normalize macOS Mutagen paths to local Linux paths."""
-    # Mutagen maps /home/user -> /Users/macuser/...
+    import sys
+    if sys.platform != "linux":
+        return p
+    # On Linux, /Users/* paths are Mutagen-synced macOS paths
     mac_home_match = re.match(r"/Users/[^/]+/(.+)", p)
     if mac_home_match:
         return str(Path.home() / mac_home_match.group(1))
@@ -137,7 +142,7 @@ def _normalize_path(p: str) -> str:
 
 async def _enrich_session(session: Session) -> None:
     """Find Claude session UUID, title, and cwd. Runs in thread to avoid blocking."""
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, _enrich_session_sync, session)
 
 
@@ -234,5 +239,7 @@ def is_daemon_running() -> bool:
     try:
         os.kill(state.pid, 0)
         return True
-    except OSError:
+    except ProcessLookupError:
         return False
+    except PermissionError:
+        return True
