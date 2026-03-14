@@ -1,0 +1,13 @@
+[project]
+name = "happier-tui"
+version = "0.1.0"
+description = "Terminal UI for managing Happier sessions"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "textual>=8.1.1",
+    "httpx>=0.28.0",
+]
+
+[project.scripts]
+happier-tui = "happier_tui.app:main"

@@ -1,0 +1,2 @@
+[console_scripts]
+happier-tui = happier_tui.app:main
